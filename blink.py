@@ -120,7 +120,6 @@ def blinkPred(count,score,thicc,rpred,lpred):
 mon = {'left': 600, 'top': 300, 'width': 300, 'height': 300}
 mon2 = {'left': 100, 'top': 100, 'width': 300, 'height': 300}
 
-
 with mss() as sct:
     while True:
         screenShot = sct.grab(mon)
@@ -181,11 +180,17 @@ with mss() as sct:
 
         if(rpred[0]==1 and lpred[0]==1):
             score=score+1
+            with open('1.txt', 'w') as f:
+                f.seek(0)
+                f.write("Score: " + str(score))
             cv2.putText(frame,"open",(10,height-20), font, 1,(255,255,255),1,cv2.LINE_AA)
         #if(rpred[0]==0 or lpred[0]==0):
         else:
             #score=score>1
             cv2.putText(frame,"blink",(10,height-20), font, 1,(255,255,255),1,cv2.LINE_AA)
+            with open('1.txt', 'w') as f:
+                f.seek(0)
+                f.write("Score: " + str(score))
             break
             cv2.putText(frame,'Score:'+str(score),(100,height-20), font, 1,(255,255,255),1,cv2.LINE_AA)
             
