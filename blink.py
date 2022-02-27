@@ -124,21 +124,90 @@ mon2 = {'left': 100, 'top': 100, 'width': 300, 'height': 300}
 with mss() as sct:
     while True:
         screenShot = sct.grab(mon)
-        screenShot2 = sct.grab(mon2)
         img = Image.frombytes(
             'RGB', 
             (screenShot.width, screenShot.height), 
             screenShot.rgb, 
         )
-        img2 = Image.frombytes(
-            'RGB', 
-            (screenShot2.width, screenShot2.height), 
-            screenShot2.rgb, 
-        )
-        cv2.imshow('test', np.array(img))
-        cv2.imshow('test2', np.array(img2))
+
+        im = np.array(screenShot)
+        im = np.flip(im[:, :, :3], 2)
+        frame = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)  # 2
+
+        height,width = frame.shape[:2]
+
+
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+        faces = face.detectMultiScale(gray,minNeighbors=5,scaleFactor=1.1,minSize=(25,25))
+        left_eye = leye.detectMultiScale(gray)
+        right_eye = reye.detectMultiScale(gray)
+
+        cv2.rectangle(frame, (0,height-50) , (200,height) , (0,0,0) , thickness=cv2.FILLED )
+
+        for (x,y,w,h) in faces:
+            cv2.rectangle(frame, (x,y) , (x+w,y+h) , (100,100,100) , 1 )
+
+        for (x,y,w,h) in right_eye:
+            r_eye=frame[y:y+h,x:x+w]
+            count=count+1
+            #sleep(0)
+            r_eye = cv2.cvtColor(r_eye,cv2.COLOR_BGR2GRAY)
+            r_eye = cv2.resize(r_eye,(24,24))
+            r_eye= r_eye/255
+            r_eye= r_eye.reshape(24,24,-1)
+            r_eye = np.expand_dims(r_eye,axis=0)
+            rpred = model.predict_classes(r_eye)
+            if(rpred[0]==1):
+                lbl='Open'
+            if(rpred[0]==0):
+                lbl='blink'
+            break
+
+        for (x,y,w,h) in left_eye:
+            l_eye=frame[y:y+h,x:x+w]
+            count=count+1
+            l_eye = cv2.cvtColor(l_eye,cv2.COLOR_BGR2GRAY)
+            l_eye = cv2.resize(l_eye,(24,24))
+            l_eye= l_eye/255
+            l_eye=l_eye.reshape(24,24,-1)
+            l_eye = np.expand_dims(l_eye,axis=0)
+            lpred = model.predict_classes(l_eye)
+            if(lpred[0]==1):
+                lbl='Open'
+            if(lpred[0]==0):
+                lbl='blink'
+            break
+
+        if(rpred[0]==1 and lpred[0]==1):
+            score=score+1
+            cv2.putText(frame,"open",(10,height-20), font, 1,(255,255,255),1,cv2.LINE_AA)
+        #if(rpred[0]==0 or lpred[0]==0):
+        else:
+            #score=score>1
+            cv2.putText(frame,"blink",(10,height-20), font, 1,(255,255,255),1,cv2.LINE_AA)
+            break
+            cv2.putText(frame,'Score:'+str(score),(100,height-20), font, 1,(255,255,255),1,cv2.LINE_AA)
+            
+        if(score<0):
+            score=0
+        cv2.putText(frame,'Score:'+str(score),(100,height-20), font, 1,(255,255,255),1,cv2.LINE_AA)
+        if(score>5):
+            if(thicc<16):
+                thicc= thicc+2
+            else:
+                thicc=thicc-2
+                if(thicc<2):
+                    thicc=2
+            cv2.rectangle(frame,(0,0),(width,height),(0,0,255),thicc)
+        cv2.imshow('frame',frame)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            # break
+            # exit()
+            break
         if cv2.waitKey(33) & 0xFF in (
             ord('q'), 
             27, 
         ):
             break
+    cv2.destroyAllWindows()
