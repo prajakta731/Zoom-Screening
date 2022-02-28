@@ -117,7 +117,7 @@ def blinkPred(count,score,thicc,rpred,lpred):
 # cap.release()
 # cv2.destroyAllWindows()
 
-mon = {'left': 600, 'top': 300, 'width': 300, 'height': 300}
+mon = {'left': 682, 'top': 159, 'width': 680, 'height': 385}
 mon2 = {'left': 100, 'top': 100, 'width': 300, 'height': 300}
 
 with mss() as sct:
